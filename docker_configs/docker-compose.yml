@@ -1,0 +1,287 @@
+version: '2'
+services:
+  hbase-master:
+    image: zhouxianghui/hbase-base:1.0.2
+    container_name: hbase-master
+    environment:
+      - SET_CONTAINER_TIMEZONE=true
+      - CONTAINER_TIMEZONE=Asia/Shanghai
+    ports:
+      - "50070:50070"
+      - "8088:8088"
+      - "8080:8080"
+      - "8081:8081"
+      - "8042:8042"
+      - "16010:16010"
+      - "16000:16000"
+      - "9090:9090"
+      - "2181:2181"
+      - "16020:16020"
+      - "9000:9000"
+      - "9092:9092"
+      - "7077:7077"
+      - "4040:4040"
+      - "5000:5000"
+      - "7777:22"
+    volumes:
+      - "./volume/hadoop/work/master:/works"
+      - "./volume/hadoop/logs/master:/root/hadoop/logs/"
+      - "./volume/spark/logs/master:/root/spark/logs/"
+      - "./volume/hbase/master:/hworks/"
+      - "./volume/hbase/logs/master:/root/hbase/logs/"
+      - "./volume/code:/code"
+      - "./volume/kafka/hbase-master/server.properties/:/root/kafka/config/server.properties"
+      - "/etc/localtime:/etc/localtime"
+    hostname: hbase-master.hadoop-docker
+    networks:
+      hadoop-docker:
+        aliases:
+          - hbase-master
+    tty: true
+
+  hbase-slave1:
+    image: zhouxianghui/hbase-base:1.0.2
+    container_name: hbase-slave1
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - "./volume/hadoop/work/slave1:/works"
+      - "./volume/hadoop/logs/slave1:/root/hadoop/logs/"
+      - "./volume/spark/logs/slave1:/root/spark/logs/"
+      - "./volume/hbase/slave1:/hworks/"
+      - "./volume/hbase/logs/slave1:/root/hbase/logs/"
+      - "./volume/kafka/hbase-slave1/server.properties/:/root/kafka/config/server.properties"
+      - "/etc/localtime:/etc/localtime"
+    hostname: hbase-slave1.hadoop-docker
+    networks:
+      hadoop-docker:
+        aliases: 
+          - hbase-slave1
+    tty: true
+  
+  hbase-slave2:
+    image: zhouxianghui/hbase-base:1.0.2
+    container_name: hbase-slave2
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - "./volume/hadoop/work/slave2:/works"
+      - "./volume/hadoop/logs/slave2:/root/hadoop/logs/"
+      - "./volume/spark/logs/slave2:/root/spark/logs/"
+      - "./volume/hbase/slave2:/hworks/"
+      - "./volume/hbase/logs/slave2:/root/hbase/logs/"
+      - "./volume/kafka/hbase-slave2/server.properties/:/root/kafka/config/server.properties"
+      - "/etc/localtime:/etc/localtime"
+    hostname: hbase-slave2.hadoop-docker
+    networks:
+      hadoop-docker:
+        aliases: 
+          - hbase-slave2
+    tty: true
+
+  hbase-slave3:
+    image: zhouxianghui/hbase-base:1.0.2
+    container_name: hbase-slave3
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - "./volume/hadoop/work/slave3:/works"
+      - "./volume/hadoop/logs/slave3:/root/hadoop/logs/"
+      - "./volume/spark/logs/slave3:/root/spark/logs/"
+      - "./volume/hbase/slave3:/hworks/"
+      - "./volume/hbase/logs/slave3:/root/hbase/logs/"
+      - "./volume/kafka/hbase-slave3/server.properties/:/root/kafka/config/server.properties"
+      - "/etc/localtime:/etc/localtime"
+    hostname: hbase-slave3.hadoop-docker
+    networks:
+      hadoop-docker:
+        aliases: 
+          - hbase-slave3
+    tty: true
+
+  mysql:
+    image: mysql:5.7
+    volumes:
+      - "./volume/mysql:/var/lib/mysql"
+      - "/etc/localtime:/etc/localtime"
+    container_name: mysql
+    hostname: mysql
+    networks:
+      - hadoop-docker
+    environment:
+      - TZ=Asia/Shanghai
+      - MYSQL_ROOT_PASSWORD=hadoop
+    tty: true
+    ports:
+      - "3306:3306"
+  
+  zoo1:
+    image: twinsen/zookeeper:3.4.10
+    volumes:
+      - "./volume/zk/zoo1:/works"
+      - "/etc/localtime:/etc/localtime"
+    container_name: zoo1
+    environment:
+      - TZ=Asia/Shanghai
+    hostname: zoo1
+    networks:
+      hadoop-docker:
+        aliases: 
+          - zoo1
+    tty: true
+
+  zoo2:
+    image: twinsen/zookeeper:3.4.10
+    volumes:
+      - "./volume/zk/zoo2:/works"
+      - "/etc/localtime:/etc/localtime"
+    container_name: zoo2
+    environment:
+      - TZ=Asia/Shanghai
+    hostname: zoo2
+    networks:
+      hadoop-docker:
+        aliases: 
+          - zoo2
+    tty: true
+    
+  zoo3:
+    image: twinsen/zookeeper:3.4.10
+    volumes:
+      - "./volume/zk/zoo3:/works"
+      - "/etc/localtime:/etc/localtime"
+    container_name: zoo3
+    environment:
+      - TZ=Asia/Shanghai
+    hostname: zoo3
+    networks:
+      hadoop-docker:
+        aliases: 
+          - zoo3
+    tty: true
+
+  es01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.6.0
+    container_name: es01
+    environment:
+      - TZ=Asia/Shanghai
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - "discovery.zen.ping.unicast.hosts=es01,es02,es03"
+      - "discovery.zen.minimum_master_nodes=2"
+#      - discovery.seed_hosts=es02,es03
+#      - cluster.initial_master_nodes=es01,es02,es03
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - "./volume/elasticsearch/data01:/usr/share/elasticsearch/data1"
+      - "/etc/localtime:/etc/localtime"
+    ports:
+      - 9200:9200
+    networks:
+      hadoop-docker:
+        aliases:
+          - es01
+    tty: true  
+   
+  es02:
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.6.0
+    container_name: es02
+    environment:
+      - TZ=Asia/Shanghai
+      - node.name=es02
+      - cluster.name=es-docker-cluster
+      - "discovery.zen.ping.unicast.hosts=es01,es02,es03"
+      - "discovery.zen.minimum_master_nodes=2"
+#      - discovery.seed_hosts=es01,es03
+#      - cluster.initial_master_nodes=es01,es02,es03
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - "./volume/elasticsearch/data02:/usr/share/elasticsearch/data2"
+      - "/etc/localtime:/etc/localtime"
+    networks:
+      hadoop-docker:
+        aliases:
+         - es02
+    tty: true
+
+  es03:
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.6.0
+    container_name: es03
+    environment:
+      - TZ=Asia/Shanghai
+      - node.name=es03
+      - cluster.name=es-docker-cluster
+      - "discovery.zen.ping.unicast.hosts=es01,es02,es03" 
+      - "discovery.zen.minimum_master_nodes=2"
+#     - discovery.seed_hosts=es01,es02
+ #     - cluster.initial_master_nodes=es01,es02,es03
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - "./volume/elasticsearch/data03:/usr/share/elasticsearch/data3"
+      - "/etc/localtime:/etc/localtime"
+    networks:
+      hadoop-docker:
+        aliases:
+          - es03
+    tty: true
+    
+  kibana:
+    image: docker.elastic.co/kibana/kibana:5.6.0
+    container_name: kibana
+    environment:
+      - TZ=Asia/Shanghai
+    ports:
+      - "5601:5601"
+    volumes:
+      - "/etc/localtime:/etc/localtime"
+      - "./configs/kibana.yml:/usr/share/kibana/config/kibana.yml:rw"
+    depends_on:
+      - es01
+    networks:
+      hadoop-docker:
+        aliases:
+          - kibana
+    tty: true
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:5.6.0
+#    command: logstash -f /etc/logstash/conf.d/logstash.conf
+    volumes:
+      - "./configs/logstash.conf:/etc/logstash/conf.d/logstash.conf"
+      - "./configs/logstash.conf:/usr/share/logstash/pipeline/logstash.conf"
+      - "./configs/logstash.yml:/usr/share/logstash/config/logstash.yml"
+      - "/etc/localtime:/etc/localtime"
+    container_name: logstash
+    environment:
+      - TZ=Asia/Shanghai
+    hostname: logstash
+    restart: always
+    depends_on:
+      - es01
+    ports:
+      - "7001-7005:7001-7005"
+      - "9600:9600"
+    networks:
+      hadoop-docker:
+        aliases:
+          - logstash
+    tty: true
+
+networks:
+  hadoop-docker:
+    external: true
